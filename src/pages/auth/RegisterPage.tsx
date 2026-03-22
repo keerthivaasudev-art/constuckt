@@ -6,25 +6,33 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building2, Mail, Lock, User, Chrome } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { signUp } = useAuth();
   const navigate = useNavigate();
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate registration
-    login(email, name);
-    navigate('/');
-  };
-
-  const handleGoogleLogin = () => {
-    // Simulate Google login
-    login('google-user@gmail.com', 'Google User');
-    navigate('/');
+    setIsLoading(true);
+    
+    try {
+      const { error } = await signUp(email, password, name);
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success('Account created successfully! Please check your email for verification.');
+        navigate('/login');
+      }
+    } catch (error: any) {
+      toast.error('An unexpected error occurred during registration.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -51,7 +59,7 @@ export function RegisterPage() {
                   id="name" 
                   type="text" 
                   placeholder="John Doe" 
-                  className="pl-10"
+                  className="pl-10 h-11"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required 
@@ -66,7 +74,7 @@ export function RegisterPage() {
                   id="email" 
                   type="email" 
                   placeholder="name@company.com" 
-                  className="pl-10"
+                  className="pl-10 h-11"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required 
@@ -81,15 +89,19 @@ export function RegisterPage() {
                   id="password" 
                   type="password" 
                   placeholder="••••••••" 
-                  className="pl-10"
+                  className="pl-10 h-11"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required 
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 h-11 text-base font-semibold shadow-lg shadow-blue-600/20">
-              Create account
+            <Button 
+              type="submit" 
+              className="w-full bg-blue-600 hover:bg-blue-700 h-11 text-base font-semibold shadow-lg shadow-blue-600/20"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Creating account...' : 'Create account'}
             </Button>
           </form>
 
@@ -105,7 +117,7 @@ export function RegisterPage() {
           <Button 
             variant="outline" 
             className="w-full h-11 border-slate-200 hover:bg-slate-50 transition-all font-medium"
-            onClick={handleGoogleLogin}
+            disabled={true} // Google auth needs setup in Supabase dashboard
           >
             <Chrome className="mr-2 h-5 w-5 text-red-500" />
             Sign up with Google

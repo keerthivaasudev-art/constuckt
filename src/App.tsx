@@ -35,7 +35,11 @@ function PageLoader() {
 }
 
 function AppRoutes() {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, loading } = useAuth();
+
+  if (loading) {
+    return <div className="flex h-screen items-center justify-center bg-slate-50"><Skeleton className="h-12 w-12 rounded-full animate-spin border-4 border-blue-600 border-t-transparent" /></div>;
+  }
 
   if (!isAuthenticated) {
     return (
@@ -53,7 +57,7 @@ function AppRoutes() {
   return (
     <>
       <Suspense fallback={null}>
-        {!user?.companyDetails && <CompanyOnboarding />}
+        {!user?.profile?.organisation_id && <CompanyOnboarding />}
       </Suspense>
       <Layout>
         <Suspense fallback={<PageLoader />}>

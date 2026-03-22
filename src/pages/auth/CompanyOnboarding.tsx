@@ -8,20 +8,26 @@ import { Building2, MapPin, Phone, FileText, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
 
 export function CompanyOnboarding() {
-  const { user, updateCompanyDetails } = useAuth();
+  const { user, createOrganisation } = useAuth();
   const [companyName, setCompanyName] = useState('');
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
   const [gstin, setGstin] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateCompanyDetails({
-      name: companyName,
-      address,
-      phone,
-      gstin
-    });
+    setIsLoading(true);
+    try {
+      await createOrganisation({
+        name: companyName,
+        address,
+        phone,
+        gstin
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -41,7 +47,7 @@ export function CompanyOnboarding() {
               </div>
             </div>
             <CardTitle className="text-3xl font-bold tracking-tight text-slate-900">
-              Welcome, {user?.name}!
+              Welcome, {user?.user_metadata?.full_name || 'there'}!
             </CardTitle>
             <CardDescription className="text-lg text-slate-500">
               Let's set up your company profile to get started with ConstructFlow
@@ -110,8 +116,12 @@ export function CompanyOnboarding() {
               </div>
 
               <div className="md:col-span-2 pt-4">
-                <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-lg font-bold shadow-xl shadow-blue-600/20 transition-all active:scale-[0.98]">
-                  Complete Setup
+                <Button 
+                  type="submit" 
+                  className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-lg font-bold shadow-xl shadow-blue-600/20 transition-all active:scale-[0.98]"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Setting up...' : 'Complete Setup'}
                 </Button>
                 <p className="text-center text-xs text-slate-400 mt-4">
                   You can always update these details later in Settings.

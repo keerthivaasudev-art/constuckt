@@ -6,24 +6,32 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building2, Mail, Lock, Chrome } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { signIn } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate login
-    login(email, email.split('@')[0]);
-    navigate('/');
-  };
-
-  const handleGoogleLogin = () => {
-    // Simulate Google login
-    login('google-user@gmail.com', 'Google User');
-    navigate('/');
+    setIsLoading(true);
+    
+    try {
+      const { error } = await signIn(email, password);
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success('Welcome back!');
+        navigate('/');
+      }
+    } catch (error: any) {
+      toast.error('An unexpected error occurred during sign in.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -50,7 +58,7 @@ export function LoginPage() {
                   id="email" 
                   type="email" 
                   placeholder="name@company.com" 
-                  className="pl-10"
+                  className="pl-10 h-11"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required 
@@ -73,15 +81,19 @@ export function LoginPage() {
                   id="password" 
                   type="password" 
                   placeholder="••••••••" 
-                  className="pl-10"
+                  className="pl-10 h-11"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required 
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 h-11 text-base font-semibold shadow-lg shadow-blue-600/20">
-              Sign in
+            <Button 
+              type="submit" 
+              className="w-full bg-blue-600 hover:bg-blue-700 h-11 text-base font-semibold shadow-lg shadow-blue-600/20"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Signing in...' : 'Sign in'}
             </Button>
           </form>
 
@@ -97,7 +109,7 @@ export function LoginPage() {
           <Button 
             variant="outline" 
             className="w-full h-11 border-slate-200 hover:bg-slate-50 transition-all font-medium"
-            onClick={handleGoogleLogin}
+            disabled={true}
           >
             <Chrome className="mr-2 h-5 w-5 text-red-500" />
             Sign in with Google
