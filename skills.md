@@ -81,6 +81,15 @@ Always use shadcn components — never build raw HTML equivalents:
 | Toasts | `sonner` (via shadcn) |
 | Cards | `<Card>`, `<CardHeader>`, `<CardContent>` |
 
+
+### Zod validation
+
+- Use Zod validation whenever there are manual fields - let user decide the zod schema rules.
+- Ask user if how they want to have the zod schema
+- Every new modules introduce zod schema
+
+
+
 ### Tailwind CSS Rules
 
 - Use Tailwind utility classes only — no inline styles except for truly dynamic values

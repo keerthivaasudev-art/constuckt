@@ -14,6 +14,9 @@ import {
   Edit2,
   Trash2,
   IndianRupee,
+  FileText,
+  Settings,
+  Layers,
 } from 'lucide-react';
 import { 
   Table, 
@@ -48,7 +51,6 @@ import {
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useMaterialsData } from '../hooks/useMaterials';
 import { useQuery } from '@tanstack/react-query';
 
@@ -221,16 +223,16 @@ export function MaterialList() {
               </DialogHeader>
               
               <form onSubmit={handleSubmit} className="py-4">
-                <Tabs defaultValue="general" className="space-y-6">
-                  <TabsList className="bg-slate-100 p-1 w-full justify-start overflow-x-auto">
-                    <TabsTrigger value="general" className="gap-2">General Info</TabsTrigger>
-                    <TabsTrigger value="pricing" className="gap-2">Pricing & Tax</TabsTrigger>
-                    <TabsTrigger value="specs" className="gap-2">Technical Specs</TabsTrigger>
-                    <TabsTrigger value="variants" className="gap-2">Variants</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="general" className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-100">
+                <div className="space-y-10">
+                  {/* General Info Section */}
+                  <section className="space-y-4">
+                    <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                      <div className="p-2 bg-blue-50 rounded-lg">
+                        <FileText className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-900">General Information</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50/50 p-6 rounded-xl border border-slate-100">
                       <div className="space-y-2">
                         <Label htmlFor="name">Item Name *</Label>
                         <Input id="name" name="name" defaultValue={editingMaterial?.name || ''} placeholder="e.g. Gate Valve" required />
@@ -270,10 +272,17 @@ export function MaterialList() {
                         </Select>
                       </div>
                     </div>
-                  </TabsContent>
+                  </section>
 
-                  <TabsContent value="pricing" className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-blue-50/50 p-6 rounded-xl border border-blue-100">
+                  {/* Pricing Section */}
+                  <section className="space-y-4">
+                    <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                      <div className="p-2 bg-emerald-50 rounded-lg">
+                        <IndianRupee className="w-5 h-5 text-emerald-600" />
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-900">Pricing & Tax Details</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-emerald-50/20 p-6 rounded-xl border border-emerald-100/50">
                       <div className="space-y-2">
                         <Label htmlFor="sale_price">Standard Sale Price (₹)</Label>
                         <div className="relative">
@@ -306,10 +315,17 @@ export function MaterialList() {
                         <Input id="hsn_code" name="hsn_code" defaultValue={editingMaterial?.hsn_code || ''} placeholder="e.g. 8481" />
                       </div>
                     </div>
-                  </TabsContent>
+                  </section>
 
-                  <TabsContent value="specs" className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-100">
+                  {/* Specs Section */}
+                  <section className="space-y-4">
+                    <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                      <div className="p-2 bg-amber-50 rounded-lg">
+                        <Settings className="w-5 h-5 text-amber-600" />
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-900">Technical Specifications</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-slate-50/50 p-6 rounded-xl border border-slate-100">
                       <div className="space-y-2">
                         <Label htmlFor="size">Size / Dimensions</Label>
                         <Input id="size" name="size" defaultValue={editingMaterial?.size || ''} placeholder="e.g. 2 inch" />
@@ -331,10 +347,17 @@ export function MaterialList() {
                         <Input id="end_connection" name="end_connection" defaultValue={editingMaterial?.end_connection || ''} placeholder="e.g. Flanged" />
                       </div>
                     </div>
-                  </TabsContent>
+                  </section>
 
-                  <TabsContent value="variants" className="space-y-6">
-                    <div className="bg-white border rounded-xl p-6 space-y-4 shadow-sm">
+                  {/* Variants Section */}
+                  <section className="space-y-4">
+                    <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                      <div className="p-2 bg-purple-50 rounded-lg">
+                        <Layers className="w-5 h-5 text-purple-600" />
+                      </div>
+                      <h3 className="text-lg font-bold text-slate-900">Inventory Variants</h3>
+                    </div>
+                    <div className="bg-white border rounded-xl p-6 space-y-4 shadow-sm border-slate-200">
                       <div className="flex items-center justify-between">
                         <div className="space-y-0.5">
                           <Label className="text-base font-bold">Enable Variants</Label>
@@ -358,7 +381,7 @@ export function MaterialList() {
                       </div>
 
                       {usesVariant && (
-                        <div className="space-y-4 pt-4 border-t">
+                        <div className="space-y-4 pt-4 border-t border-slate-100">
                           {variantPricingRows.map((row, idx) => (
                             <div key={row.company_variant_id} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-lg items-end border border-slate-100">
                               <div className="space-y-1">
@@ -405,8 +428,8 @@ export function MaterialList() {
                         </div>
                       )}
                     </div>
-                  </TabsContent>
-                </Tabs>
+                  </section>
+                </div>
 
                 <DialogFooter className="mt-8 pt-6 border-t">
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Discard Changes</Button>
