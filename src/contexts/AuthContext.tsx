@@ -107,7 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       created_at: new Date().toISOString(),
       profile: {
         id: '00000000-0000-0000-0000-000000000000',
-        organisation_id: 'demo-org-123', // Hardcoded demo org
+        organisation_id: '00000000-0000-0000-0000-000000000001', // Hardcoded demo org
         full_name: 'Demo ' + (role === 'admin' ? 'Administrator' : 'Staff'),
         role: role,
         created_at: new Date().toISOString()
@@ -124,7 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Simulate org creation for demo
       const updatedUser = { 
         ...user, 
-        profile: { ...user.profile!, organisation_id: 'demo-new-org' } 
+        profile: { ...user.profile!, organisation_id: '00000000-0000-0000-0000-000000000002' } 
       };
       setUser(updatedUser);
       localStorage.setItem('constructflow_demo_user', JSON.stringify(updatedUser));
