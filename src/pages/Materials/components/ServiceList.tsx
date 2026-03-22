@@ -36,6 +36,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useMaterialsData } from '../hooks/useMaterials';
+import { cn } from '@/lib/utils';
 
 export function ServiceList() {
   const { queries, mutations } = useMaterialsData();
@@ -101,82 +102,106 @@ export function ServiceList() {
           </div>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700 gap-2 h-11 md:h-9">
-              <Plus className="w-4 h-4" /> Add Service
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="w-full max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>{editingService ? 'Edit' : 'Add New'} Service</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-6 py-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Service Name *</Label>
-                  <Input id="name" name="name" defaultValue={editingService?.service_name || ''} required className="h-11 md:h-9" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="item_code">Service Code</Label>
-                  <Input id="item_code" name="item_code" defaultValue={editingService?.service_code || ''} className="h-11 md:h-9" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="unit">Unit *</Label>
-                  <Input id="unit" name="unit" defaultValue={editingService?.unit || ''} required className="h-11 md:h-9" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="sale_price">Sale Price</Label>
-                  <Input id="sale_price" name="sale_price" type="number" step="0.01" defaultValue={editingService?.sale_price || 0} className="h-11 md:h-9" />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Save Service</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button 
+          className="bg-blue-600 hover:bg-blue-700 gap-2 h-11 md:h-9"
+          onClick={() => {
+            setEditingService(null);
+            setIsDialogOpen(true);
+          }}
+        >
+          <Plus className="w-4 h-4" /> Add Service
+        </Button>
       </div>
 
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="w-full max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{editingService ? 'Edit' : 'Add New'} Service</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-6 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Service Name *</Label>
+                <Input id="name" name="name" defaultValue={editingService?.service_name || ''} required className="h-11 md:h-9" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="display_name">Description</Label>
+                <Input id="display_name" name="display_name" defaultValue={editingService?.description || ''} className="h-11 md:h-9" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="item_code">Service Code</Label>
+                <Input id="item_code" name="item_code" defaultValue={editingService?.service_code || ''} className="h-11 md:h-9" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="unit">Unit *</Label>
+                <Input id="unit" name="unit" defaultValue={editingService?.unit || ''} required className="h-11 md:h-9" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="sale_price">Sale Price</Label>
+                <Input id="sale_price" name="sale_price" type="number" step="0.01" defaultValue={editingService?.sale_price || 0} className="h-11 md:h-9" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="gst_rate">Tax Rate (%)</Label>
+                <Input id="gst_rate" name="gst_rate" type="number" step="0.01" defaultValue={editingService?.tax_rate || 0} className="h-11 md:h-9" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="hsn_code">HSN Code</Label>
+                <Input id="hsn_code" name="hsn_code" defaultValue={editingService?.hsn_code || ''} className="h-11 md:h-9" />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700">Save Service</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/* Desktop Table */}
-      <div className="hidden md:block rounded-md border bg-white overflow-hidden">
+      <div className="hidden md:block rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         <Table>
-          <TableHeader>
-            <TableRow className="bg-slate-50">
-              <TableHead className="text-xs font-semibold uppercase font-sans">Name</TableHead>
-              <TableHead className="text-xs font-semibold uppercase font-sans">Code</TableHead>
-              <TableHead className="text-xs font-semibold uppercase font-sans text-right">Price</TableHead>
-              <TableHead className="text-xs font-semibold uppercase font-sans">Status</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
+          <TableHeader className="bg-slate-50/50">
+            <TableRow>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Service Name</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Code</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Unit</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Price</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Tax %</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Status</TableHead>
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500 text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-               <TableRow><TableCell colSpan={6} className="text-center py-8 text-slate-500">Loading services...</TableCell></TableRow>
+               <TableRow><TableCell colSpan={7} className="text-center py-12 text-slate-500">Loading services...</TableCell></TableRow>
             ) : filteredServices?.length === 0 ? (
-              <TableRow><TableCell colSpan={6} className="text-center py-8 text-slate-500">No services found.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center py-12 text-slate-500">No services found.</TableCell></TableRow>
             ) : filteredServices?.map(service => (
-              <TableRow key={service.id} className="hover:bg-slate-50/50">
-                <TableCell className="text-xs font-sans font-medium">{service.service_name}</TableCell>
-                <TableCell className="text-xs font-sans text-slate-500">{service.service_code || '-'}</TableCell>
-                <TableCell className="text-xs font-sans text-right">₹{service.sale_price?.toLocaleString()}</TableCell>
+              <TableRow key={service.id} className="hover:bg-slate-50/50 transition-colors">
+                <TableCell className="font-semibold text-slate-900">{service.service_name}</TableCell>
+                <TableCell className="text-slate-600">{service.service_code || '-'}</TableCell>
+                <TableCell className="text-slate-600 uppercase">{service.unit}</TableCell>
+                <TableCell className="text-slate-600 font-medium">₹{service.sale_price?.toLocaleString()}</TableCell>
+                <TableCell className="text-slate-600">{service.tax_rate}%</TableCell>
                 <TableCell>
-                  <Badge variant={service.is_active ? "success" : "secondary"} className="text-[10px] uppercase">
+                  <span className={cn(
+                    "px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
+                    service.is_active ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"
+                  )}>
                     {service.is_active ? 'Active' : 'Inactive'}
-                  </Badge>
+                  </span>
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-right">
                    <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="w-4 h-4" /></Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-slate-100"><MoreHorizontal className="w-4 h-4" /></Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => { setEditingService(service); setIsDialogOpen(true); }}>
-                        <Edit2 className="w-4 h-4 mr-2" /> Edit
+                    <DropdownMenuContent align="end" className="w-32">
+                      <DropdownMenuItem onClick={() => { setEditingService(service); setIsDialogOpen(true); }} className="gap-2">
+                        <Edit2 className="w-3.5 h-3.5" /> Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600" onClick={() => { if(confirm('Delete this service?')) mutations.deleteService.mutate(service.id); }}>
-                        <Trash2 className="w-4 h-4 mr-2" /> Delete
+                      <DropdownMenuItem className="text-red-600 focus:text-red-700 focus:bg-red-50" onClick={() => { if(confirm('Delete this service?')) mutations.deleteService.mutate(service.id); }}>
+                        <Trash2 className="w-3.5 h-3.5" /> Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

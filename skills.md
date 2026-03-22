@@ -88,7 +88,8 @@ Always use shadcn components — never build raw HTML equivalents:
 - Ask user if how they want to have the zod schema
 - Every new modules introduce zod schema
 
-
+### git commit
+- Whenever theres is changes in code, before committing - always give a commit description for git desktop.
 
 ### Tailwind CSS Rules
 

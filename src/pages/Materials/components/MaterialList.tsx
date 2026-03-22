@@ -17,6 +17,7 @@ import {
   FileText,
   Settings,
   Layers,
+  RefreshCw,
 } from 'lucide-react';
 import { 
   Table, 
@@ -53,6 +54,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useMaterialsData } from '../hooks/useMaterials';
 import { useQuery } from '@tanstack/react-query';
+import { cn } from '@/lib/utils';
 
 export function MaterialList() {
   const { queries, mutations } = useMaterialsData();
@@ -70,16 +72,9 @@ export function MaterialList() {
   const [variantPricingRows, setVariantPricingRows] = useState<any[]>([]);
   
   // Column Visibility State
-  const [visibleColumns, setVisibleColumns] = useState<string[]>(['Item Detail', 'Category & Unit', 'Price', 'Tax', 'Features', 'Status']);
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(['Name', 'Code', 'Category', 'Unit', 'Variants', 'Price', 'Status']);
   
-  const allColumns = [
-    { id: 'Item Detail', label: 'Item Detail' },
-    { id: 'Category & Unit', label: 'Category & Unit' },
-    { id: 'Price', label: 'Selling Price' },
-    { id: 'Tax', label: 'Tax Details' },
-    { id: 'Features', label: 'Features' },
-    { id: 'Status', label: 'Status' }
-  ];
+  const allColumns = ['Name', 'Display Name', 'Item Code', 'Category', 'Sub Category', 'Unit', 'Sale Price', 'Purchase Price', 'GST Rate', 'HSN Code', 'Size', 'Pressure Class', 'Schedule Type', 'Material', 'End Connection', 'Variants', 'Status'];
 
   const toggleColumn = (columnId: string) => {
     setVisibleColumns(prev => 
@@ -178,31 +173,45 @@ export function MaterialList() {
             />
             <Label htmlFor="hide-inactive" className="text-sm cursor-pointer">Hide Inactive</Label>
           </div>
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-[180px] h-11 md:h-9 bg-slate-50">
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {categories?.map(cat => (
+                <SelectItem key={cat.id} value={cat.category_name}>{cat.category_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Columns Button Restored */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2 text-slate-600 hidden md:flex h-9">
                 <Columns className="w-4 h-4" /> Columns
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-56 max-h-96 overflow-y-auto">
               <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {allColumns.map((col) => (
                 <div 
-                  key={col.id} 
+                  key={col} 
                   className="flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-slate-50 rounded-sm"
-                  onClick={() => toggleColumn(col.id)}
+                  onClick={() => toggleColumn(col)}
                 >
-                  <Checkbox checked={visibleColumns.includes(col.id)} />
-                  <span className="text-sm">{col.label}</span>
+                  <Checkbox checked={visibleColumns.includes(col)} />
+                  <span className="text-sm">{col}</span>
                 </div>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+
+          <Button variant="outline" size="sm" className="gap-2 text-slate-600 hidden md:flex h-9">
+            <RefreshCw className="w-4 h-4" /> Bulk Price Update
+          </Button>
 
           <Button 
             className="bg-blue-600 hover:bg-blue-700 gap-2 h-11 md:h-9 flex-1 md:flex-none font-semibold shadow-lg shadow-blue-600/20"
@@ -225,7 +234,6 @@ export function MaterialList() {
               <div className="flex-1 overflow-y-auto p-6 pt-0 custom-scrollbar">
                 <form id="material-form" onSubmit={handleSubmit} className="py-4">
                   <div className="space-y-10">
-                    {/* General Info Section */}
                     <section className="space-y-4">
                       <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
                         <div className="p-2 bg-blue-50 rounded-lg">
@@ -275,7 +283,6 @@ export function MaterialList() {
                       </div>
                     </section>
 
-                    {/* Pricing Section */}
                     <section className="space-y-4">
                       <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
                         <div className="p-2 bg-emerald-50 rounded-lg">
@@ -318,7 +325,6 @@ export function MaterialList() {
                       </div>
                     </section>
 
-                    {/* Specs Section */}
                     <section className="space-y-4">
                       <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
                         <div className="p-2 bg-amber-50 rounded-lg">
@@ -350,7 +356,6 @@ export function MaterialList() {
                       </div>
                     </section>
 
-                    {/* Variants Section */}
                     <section className="space-y-4">
                       <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
                         <div className="p-2 bg-purple-50 rounded-lg">
@@ -450,18 +455,28 @@ export function MaterialList() {
         </div>
       </div>
 
-      {/* Desktop Table with Conditional Columns */}
-      <div className="hidden md:block rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="hidden md:block rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="bg-slate-50 border-b border-slate-200">
-              {visibleColumns.includes('Item Detail') && <TableHead className="font-bold text-slate-900">Item Detail</TableHead>}
-              {visibleColumns.includes('Category & Unit') && <TableHead className="font-bold text-slate-900">Category & Unit</TableHead>}
-              {visibleColumns.includes('Price') && <TableHead className="font-bold text-slate-900 text-right">Selling Price</TableHead>}
-              {visibleColumns.includes('Tax') && <TableHead className="font-bold text-slate-900">Tax Detail</TableHead>}
-              {visibleColumns.includes('Features') && <TableHead className="font-bold text-slate-900">Features</TableHead>}
-              {visibleColumns.includes('Status') && <TableHead className="font-bold text-slate-900">Status</TableHead>}
-              <TableHead className="w-[50px]"></TableHead>
+              {visibleColumns.includes('Name') && <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Name</TableHead>}
+              {visibleColumns.includes('Display Name') && <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Display Name</TableHead>}
+              {visibleColumns.includes('Item Code') && <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Code</TableHead>}
+              {visibleColumns.includes('Category') && <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Category</TableHead>}
+              {visibleColumns.includes('Sub Category') && <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Sub Category</TableHead>}
+              {visibleColumns.includes('Unit') && <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Unit</TableHead>}
+              {visibleColumns.includes('Sale Price') && <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Sale Price</TableHead>}
+              {visibleColumns.includes('Purchase Price') && <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Purchase Price</TableHead>}
+              {visibleColumns.includes('GST Rate') && <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">GST Rate</TableHead>}
+              {visibleColumns.includes('HSN Code') && <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">HSN Code</TableHead>}
+              {visibleColumns.includes('Size') && <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Size</TableHead>}
+              {visibleColumns.includes('Pressure Class') && <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Pressure Class</TableHead>}
+              {visibleColumns.includes('Schedule Type') && <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Schedule Type</TableHead>}
+              {visibleColumns.includes('Material') && <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Material</TableHead>}
+              {visibleColumns.includes('End Connection') && <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">End Connection</TableHead>}
+              {visibleColumns.includes('Variants') && <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Variants</TableHead>}
+              {visibleColumns.includes('Status') && <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Status</TableHead>}
+              <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-500 text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -471,52 +486,47 @@ export function MaterialList() {
               <TableRow><TableCell colSpan={visibleColumns.length + 1} className="text-center py-12 text-slate-500">No items found matching your search.</TableCell></TableRow>
             ) : filteredMaterials?.map(item => (
               <TableRow key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                {visibleColumns.includes('Item Detail') && (
-                  <TableCell>
-                    <div className="space-y-0.5">
-                      <p className="font-bold text-slate-900">{item.name}</p>
-                      <p className="text-[10px] font-medium text-slate-500 uppercase tracking-tighter">{item.item_code || 'No Code'}</p>
-                    </div>
+                {visibleColumns.includes('Name') && (
+                  <TableCell className="font-semibold text-slate-900">
+                    <div>{item.name}</div>
                   </TableCell>
                 )}
-                {visibleColumns.includes('Category & Unit') && (
+                {visibleColumns.includes('Display Name') && <TableCell className="text-slate-600">{item.display_name || '-'}</TableCell>}
+                {visibleColumns.includes('Item Code') && <TableCell className="text-slate-600">{item.item_code}</TableCell>}
+                {visibleColumns.includes('Category') && <TableCell className="text-slate-600">{item.category}</TableCell>}
+                {visibleColumns.includes('Sub Category') && <TableCell className="text-slate-600">{item.sub_category || '-'}</TableCell>}
+                {visibleColumns.includes('Unit') && <TableCell className="text-slate-600 uppercase">{item.unit}</TableCell>}
+                {visibleColumns.includes('Sale Price') && <TableCell className="text-slate-600 font-medium text-right">₹{item.sale_price?.toLocaleString()}</TableCell>}
+                {visibleColumns.includes('Purchase Price') && <TableCell className="text-slate-600 font-medium text-right">₹{item.purchase_price?.toLocaleString()}</TableCell>}
+                {visibleColumns.includes('GST Rate') && <TableCell className="text-slate-600">{item.gst_rate}%</TableCell>}
+                {visibleColumns.includes('HSN Code') && <TableCell className="text-slate-600">{item.hsn_code || '-'}</TableCell>}
+                {visibleColumns.includes('Size') && <TableCell className="text-slate-600">{item.size || '-'}</TableCell>}
+                {visibleColumns.includes('Pressure Class') && <TableCell className="text-slate-600">{item.pressure_class || '-'}</TableCell>}
+                {visibleColumns.includes('Schedule Type') && <TableCell className="text-slate-600">{item.schedule_type || '-'}</TableCell>}
+                {visibleColumns.includes('Material') && <TableCell className="text-slate-600">{item.material || '-'}</TableCell>}
+                {visibleColumns.includes('End Connection') && <TableCell className="text-slate-600">{item.end_connection || '-'}</TableCell>}
+                {visibleColumns.includes('Variants') && (
                   <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <Badge variant="secondary" className="w-fit text-[10px]">{item.category}</Badge>
-                      <span className="text-xs text-slate-500">{item.unit}</span>
-                    </div>
-                  </TableCell>
-                )}
-                {visibleColumns.includes('Price') && (
-                  <TableCell className="text-right font-bold text-blue-700">
-                    ₹{item.sale_price?.toLocaleString()}
-                  </TableCell>
-                )}
-                {visibleColumns.includes('Tax') && (
-                  <TableCell>
-                    <div className="space-y-0.5">
-                      <p className="text-xs font-medium text-slate-700">{item.gst_rate}% GST</p>
-                      <p className="text-[10px] text-slate-400">HSN: {item.hsn_code || 'N/A'}</p>
-                    </div>
-                  </TableCell>
-                )}
-                {visibleColumns.includes('Features') && (
-                  <TableCell>
-                    <div className="flex gap-1.5 flex-wrap">
-                      {item.uses_variant && <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[9px] uppercase font-bold px-1.5">Multi-Variant</Badge>}
-                      {item.size && <Badge variant="outline" className="text-[9px] px-1.5">{item.size}</Badge>}
-                    </div>
+                    {item.uses_variant ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-50 text-blue-600 text-[10px] font-bold uppercase">
+                        <Layers className="w-3 h-3" /> Multi
+                      </span>
+                    ) : (
+                      <span className="text-slate-400 text-xs">-</span>
+                    )}
                   </TableCell>
                 )}
                 {visibleColumns.includes('Status') && (
                   <TableCell>
-                    {item.is_active ? 
-                      <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 text-[9px] uppercase px-1.5">Live</Badge> : 
-                      <Badge variant="destructive" className="text-[9px] uppercase px-1.5">Inactive</Badge>
-                    }
+                    <span className={cn(
+                      "px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider",
+                      item.is_active ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-500"
+                    )}>
+                      {item.is_active ? 'Active' : 'Inactive'}
+                    </span>
                   </TableCell>
                 )}
-                <TableCell>
+                <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-slate-100"><MoreHorizontal className="w-4 h-4" /></Button>
@@ -537,7 +547,6 @@ export function MaterialList() {
         </Table>
       </div>
 
-      {/* Mobile Card Stack */}
       <div className="md:hidden space-y-3">
         {filteredMaterials?.map(item => (
           <Card key={item.id} className="overflow-hidden border-slate-200 shadow-sm active:bg-slate-50 transition-colors">
@@ -547,7 +556,10 @@ export function MaterialList() {
                   <h3 className="text-sm font-bold text-slate-900 leading-tight">{item.name}</h3>
                   <p className="text-[10px] text-slate-500 font-medium uppercase">{item.item_code || 'No Code'} • {item.category}</p>
                 </div>
-                <Badge className={item.is_active ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"} variant="secondary" className="text-[9px] uppercase font-bold">
+                <Badge variant="secondary" className={cn(
+                  "text-[9px] uppercase font-bold",
+                  item.is_active ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"
+                )}>
                   {item.is_active ? 'Live' : 'Hidden'}
                 </Badge>
               </div>

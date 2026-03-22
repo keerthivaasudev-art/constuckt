@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { MaterialList } from './Materials/components/MaterialList';
 import { ServiceList } from './Materials/components/ServiceList';
+import { CategoryList } from './Materials/components/CategoryList';
+import { UnitList } from './Materials/components/UnitList';
+import { WarehouseList } from './Materials/components/WarehouseList';
+import { VariantList } from './Materials/components/VariantList';
 
 type MaterialTab = 'items' | 'service' | 'category' | 'unit' | 'warehouses' | 'variants';
 
@@ -19,12 +23,6 @@ export function Materials() {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Materials & Services</h1>
-        <p className="text-slate-500">Manage your inventory items, services, and configurations.</p>
-      </div>
-
       {/* Sub-tabs */}
       <div className="border-b border-slate-200 overflow-x-auto">
         <nav className="flex gap-8 min-w-max">
@@ -45,18 +43,28 @@ export function Materials() {
         </nav>
       </div>
 
+      {/* Page Header Area */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 capitalize">
+            {activeTab === 'items' ? 'Materials & Inventory' : 
+             activeTab === 'variants' ? 'Inventory Variants' : 
+             activeTab.replace('-', ' ')}
+          </h1>
+          <p className="text-slate-500 text-sm mt-1">
+            Manage your {activeTab === 'items' ? 'inventory items' : activeTab} and configurations.
+          </p>
+        </div>
+      </div>
+
       {/* Tab Content */}
-      <div className="mt-6">
+      <div className="mt-4">
         {activeTab === 'items' && <MaterialList />}
         {activeTab === 'service' && <ServiceList />}
-        
-        {/* Placeholder for other tabs - they can be modularized later */}
-        {['category', 'unit', 'warehouses', 'variants'].includes(activeTab) && (
-          <div className="bg-white border rounded-lg p-12 text-center space-y-4">
-            <p className="text-slate-500 italic">This module ({activeTab}) is being modularized.</p>
-            <p className="text-sm text-slate-400">Please refer to the original implementation or wait for the next update.</p>
-          </div>
-        )}
+        {activeTab === 'category' && <CategoryList />}
+        {activeTab === 'unit' && <UnitList />}
+        {activeTab === 'warehouses' && <WarehouseList />}
+        {activeTab === 'variants' && <VariantList />}
       </div>
     </div>
   );
