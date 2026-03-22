@@ -23,7 +23,6 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
-  DialogTrigger,
   DialogFooter
 } from '@/components/ui/dialog';
 import {
@@ -101,15 +100,14 @@ export function ServiceList() {
           </div>
         </div>
 
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) setEditingService(null);
-        }}>
-          <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700 gap-2 h-11 md:h-9">
-              <Plus className="w-4 h-4" /> Add Service
-            </Button>
-          </DialogTrigger>
+        <Button 
+          className="bg-blue-600 hover:bg-blue-700 gap-2 h-11 md:h-9"
+          onClick={() => setIsDialogOpen(true)}
+        >
+          <Plus className="w-4 h-4" /> Add Service
+        </Button>
+
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="w-full max-w-2xl">
             <DialogHeader>
               <DialogTitle>{editingService ? 'Edit' : 'Add New'} Service</DialogTitle>

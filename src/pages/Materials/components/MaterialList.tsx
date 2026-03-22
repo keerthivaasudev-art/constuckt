@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Material, 
-  ItemCategory, 
-  ItemUnit
 } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +8,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Plus, 
   Search, 
-  Columns, 
   MoreHorizontal,
   Edit2,
   Trash2
@@ -25,17 +22,13 @@ import {
 } from '@/components/ui/table';
 import { 
   Select, 
-  SelectContent, 
   SelectItem, 
-  SelectTrigger, 
-  SelectValue 
 } from '@/components/ui/select';
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
-  DialogTrigger,
   DialogFooter
 } from '@/components/ui/dialog';
 import {
@@ -60,9 +53,6 @@ export function MaterialList() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
-  const [visibleColumns, setVisibleColumns] = useState<string[]>(['Name', 'Code', 'Category', 'Unit', 'Price', 'Status']);
-  
-  const itemColumns = ['Name', 'Item Code', 'Category', 'Unit', 'Price', 'Status'];
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -71,7 +61,6 @@ export function MaterialList() {
     
     const materialData = {
       name: data.name,
-      display_name: data.display_name,
       item_code: data.item_code || null,
       category: data.category,
       unit: data.unit,
@@ -123,15 +112,14 @@ export function MaterialList() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Dialog open={isDialogOpen} onOpenChange={(open) => {
-            setIsDialogOpen(open);
-            if (!open) setEditingMaterial(null);
-          }}>
-            <DialogTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700 gap-2 h-11 md:h-9 flex-1 md:flex-none">
-                <Plus className="w-4 h-4" /> Add Item
-              </Button>
-            </DialogTrigger>
+          <Button 
+            className="bg-blue-600 hover:bg-blue-700 gap-2 h-11 md:h-9 flex-1 md:flex-none"
+            onClick={() => setIsDialogOpen(true)}
+          >
+            <Plus className="w-4 h-4" /> Add Item
+          </Button>
+
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogContent className="w-full max-w-2xl">
               <DialogHeader>
                 <DialogTitle>{editingMaterial ? 'Edit' : 'Add New'} Item</DialogTitle>
@@ -149,27 +137,19 @@ export function MaterialList() {
                   <div className="space-y-2">
                     <Label htmlFor="category">Category *</Label>
                     <Select name="category" defaultValue={editingMaterial?.category}>
-                      <SelectTrigger className="h-11 md:h-9">
-                        <SelectValue placeholder="Select Category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories?.map(cat => (
-                          <SelectItem key={cat.id} value={cat.category_name}>{cat.category_name}</SelectItem>
-                        ))}
-                      </SelectContent>
+                      <option value="">Select Category</option>
+                      {categories?.map(cat => (
+                        <SelectItem key={cat.id} value={cat.category_name}>{cat.category_name}</SelectItem>
+                      ))}
                     </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="unit">Unit *</Label>
                     <Select name="unit" defaultValue={editingMaterial?.unit}>
-                      <SelectTrigger className="h-11 md:h-9">
-                        <SelectValue placeholder="Select Unit" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {units?.map(u => (
-                          <SelectItem key={u.id} value={u.unit_code}>{u.unit_name}</SelectItem>
-                        ))}
-                      </SelectContent>
+                      <option value="">Select Unit</option>
+                      {units?.map(u => (
+                        <SelectItem key={u.id} value={u.unit_code}>{u.unit_name}</SelectItem>
+                      ))}
                     </Select>
                   </div>
                   <div className="space-y-2">
@@ -194,8 +174,6 @@ export function MaterialList() {
             <TableRow className="bg-slate-50">
               <TableHead className="text-xs font-semibold uppercase font-sans">Name</TableHead>
               <TableHead className="text-xs font-semibold uppercase font-sans">Code</TableHead>
-              <TableHead className="text-xs font-semibold uppercase font-sans">Category</TableHead>
-              <TableHead className="text-xs font-semibold uppercase font-sans">Unit</TableHead>
               <TableHead className="text-xs font-semibold uppercase font-sans text-right">Price</TableHead>
               <TableHead className="text-xs font-semibold uppercase font-sans">Status</TableHead>
               <TableHead className="w-[50px]"></TableHead>
@@ -203,15 +181,13 @@ export function MaterialList() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-               <TableRow><TableCell colSpan={7} className="text-center py-8 text-slate-500">Loading materials...</TableCell></TableRow>
+               <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-500">Loading materials...</TableCell></TableRow>
             ) : filteredMaterials?.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center py-8 text-slate-500">No items found.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-500">No items found.</TableCell></TableRow>
             ) : filteredMaterials?.map(item => (
               <TableRow key={item.id} className="hover:bg-slate-50/50">
                 <TableCell className="text-xs font-sans font-medium">{item.name}</TableCell>
                 <TableCell className="text-xs font-sans text-slate-500">{item.item_code || '-'}</TableCell>
-                <TableCell className="text-xs font-sans">{item.category}</TableCell>
-                <TableCell className="text-xs font-sans">{item.unit}</TableCell>
                 <TableCell className="text-xs font-sans text-right">₹{item.sale_price?.toLocaleString()}</TableCell>
                 <TableCell>
                   <Badge variant={item.is_active ? "success" : "secondary"} className="text-[10px] uppercase">
@@ -247,7 +223,7 @@ export function MaterialList() {
               <div className="flex justify-between items-start mb-2">
                 <div>
                   <h3 className="text-sm font-semibold text-slate-900">{item.name}</h3>
-                  <p className="text-xs text-slate-500">{item.item_code || 'No Code'} • {item.category}</p>
+                  <p className="text-xs text-slate-500">{item.item_code || 'No Code'}</p>
                 </div>
                 <Badge variant={item.is_active ? "success" : "secondary"} className="text-[10px]">
                   {item.is_active ? 'Active' : 'Inactive'}
