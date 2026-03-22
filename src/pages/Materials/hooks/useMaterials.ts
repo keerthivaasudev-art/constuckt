@@ -1,17 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase, Material, Service, ItemCategory, ItemUnit, CompanyVariant, Warehouse } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function useMaterialsData() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const orgId = user?.profile?.organisation_id;
 
   // Queries
   const materialsQuery = useQuery({
-    queryKey: ['materials'],
+    queryKey: ['materials', orgId],
+    enabled: !!orgId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('materials')
         .select('*')
+        .eq('organisation_id', orgId)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data as Material[];
@@ -19,11 +24,13 @@ export function useMaterialsData() {
   });
 
   const servicesQuery = useQuery({
-    queryKey: ['services'],
+    queryKey: ['services', orgId],
+    enabled: !!orgId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('services')
         .select('*')
+        .eq('organisation_id', orgId)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data as Service[];
@@ -31,11 +38,13 @@ export function useMaterialsData() {
   });
 
   const categoriesQuery = useQuery({
-    queryKey: ['item-categories'],
+    queryKey: ['item-categories', orgId],
+    enabled: !!orgId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('item_categories')
         .select('*')
+        .eq('organisation_id', orgId)
         .eq('is_active', true)
         .order('category_name', { ascending: true });
       if (error) throw error;
@@ -44,11 +53,13 @@ export function useMaterialsData() {
   });
 
   const unitsQuery = useQuery({
-    queryKey: ['item-units'],
+    queryKey: ['item-units', orgId],
+    enabled: !!orgId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('item_units')
         .select('*')
+        .eq('organisation_id', orgId)
         .eq('is_active', true)
         .order('unit_name', { ascending: true });
       if (error) throw error;
@@ -57,11 +68,13 @@ export function useMaterialsData() {
   });
 
   const variantsQuery = useQuery({
-    queryKey: ['company-variants'],
+    queryKey: ['company-variants', orgId],
+    enabled: !!orgId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('company_variants')
         .select('*')
+        .eq('organisation_id', orgId)
         .order('created_at', { ascending: true });
       if (error) throw error;
       return data as CompanyVariant[];
@@ -69,11 +82,13 @@ export function useMaterialsData() {
   });
 
   const warehousesQuery = useQuery({
-    queryKey: ['warehouses'],
+    queryKey: ['warehouses', orgId],
+    enabled: !!orgId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('warehouses')
         .select('*')
+        .eq('organisation_id', orgId)
         .order('created_at', { ascending: true });
       if (error) throw error;
       return data as Warehouse[];
@@ -83,10 +98,11 @@ export function useMaterialsData() {
   // Mutations
   const addMaterialMutation = useMutation({
     mutationFn: async (newMaterial: any) => {
+      if (!orgId) throw new Error("Organisation ID missing");
       const { variantPricing, ...materialData } = newMaterial;
       const { data, error } = await supabase
         .from('materials')
-        .insert([materialData])
+        .insert([{ ...materialData, organisation_id: orgId }])
         .select();
       
       if (error) throw error;
@@ -95,6 +111,7 @@ export function useMaterialsData() {
       if (materialData.uses_variant && variantPricing?.length > 0) {
         const pricingData = variantPricing.map((p: any) => ({
           item_id: material.id,
+          organisation_id: orgId,
           company_variant_id: p.company_variant_id,
           make: p.make,
           sale_price: p.sale_price,
@@ -133,6 +150,7 @@ export function useMaterialsData() {
         if (variantPricing?.length > 0) {
           const pricingData = variantPricing.map((p: any) => ({
             item_id: id,
+            organisation_id: orgId,
             company_variant_id: p.company_variant_id,
             make: p.make,
             sale_price: p.sale_price,
@@ -168,7 +186,8 @@ export function useMaterialsData() {
 
   const addServiceMutation = useMutation({
     mutationFn: async (newService: any) => {
-      const { data, error } = await supabase.from('services').insert([newService]).select();
+      if (!orgId) throw new Error("Organisation ID missing");
+      const { data, error } = await supabase.from('services').insert([{ ...newService, organisation_id: orgId }]).select();
       if (error) throw error;
       return data[0];
     },
@@ -206,7 +225,8 @@ export function useMaterialsData() {
 
   const addVariantMutation = useMutation({
     mutationFn: async (newVariant: any) => {
-      const { data, error } = await supabase.from('company_variants').insert([newVariant]).select();
+      if (!orgId) throw new Error("Organisation ID missing");
+      const { data, error } = await supabase.from('company_variants').insert([{ ...newVariant, organisation_id: orgId }]).select();
       if (error) throw error;
       return data[0];
     },
@@ -244,7 +264,8 @@ export function useMaterialsData() {
 
   const addWarehouseMutation = useMutation({
     mutationFn: async (newWarehouse: any) => {
-      const { data, error } = await supabase.from('warehouses').insert([newWarehouse]).select();
+      if (!orgId) throw new Error("Organisation ID missing");
+      const { data, error } = await supabase.from('warehouses').insert([{ ...newWarehouse, organisation_id: orgId }]).select();
       if (error) throw error;
       return data[0];
     },
@@ -282,7 +303,8 @@ export function useMaterialsData() {
 
   const addUnitMutation = useMutation({
     mutationFn: async (newUnit: any) => {
-      const { data, error } = await supabase.from('item_units').insert([newUnit]).select();
+      if (!orgId) throw new Error("Organisation ID missing");
+      const { data, error } = await supabase.from('item_units').insert([{ ...newUnit, organisation_id: orgId }]).select();
       if (error) throw error;
       return data[0];
     },
@@ -320,7 +342,8 @@ export function useMaterialsData() {
 
   const addCategoryMutation = useMutation({
     mutationFn: async (newCategory: any) => {
-      const { data, error } = await supabase.from('item_categories').insert([newCategory]).select();
+      if (!orgId) throw new Error("Organisation ID missing");
+      const { data, error } = await supabase.from('item_categories').insert([{ ...newCategory, organisation_id: orgId }]).select();
       if (error) throw error;
       return data[0];
     },
@@ -358,19 +381,20 @@ export function useMaterialsData() {
 
   const preloadUnitsMutation = useMutation({
     mutationFn: async () => {
+      if (!orgId) throw new Error("Organisation ID missing");
       const standardUnits = [
-        { unit_name: 'Numbers', unit_code: 'Nos', is_active: true },
-        { unit_name: 'Kilograms', unit_code: 'Kg', is_active: true },
-        { unit_name: 'Meters', unit_code: 'Mtr', is_active: true },
-        { unit_name: 'Liters', unit_code: 'Ltr', is_active: true },
-        { unit_name: 'Sets', unit_code: 'Set', is_active: true },
-        { unit_name: 'Boxes', unit_code: 'Box', is_active: true },
-        { unit_name: 'Packets', unit_code: 'Pkt', is_active: true },
-        { unit_name: 'Rolls', unit_code: 'Roll', is_active: true },
-        { unit_name: 'Square Feet', unit_code: 'Sqft', is_active: true },
-        { unit_name: 'Cubic Meters', unit_code: 'Cum', is_active: true },
+        { unit_name: 'Numbers', unit_code: 'Nos', is_active: true, organisation_id: orgId },
+        { unit_name: 'Kilograms', unit_code: 'Kg', is_active: true, organisation_id: orgId },
+        { unit_name: 'Meters', unit_code: 'Mtr', is_active: true, organisation_id: orgId },
+        { unit_name: 'Liters', unit_code: 'Ltr', is_active: true, organisation_id: orgId },
+        { unit_name: 'Sets', unit_code: 'Set', is_active: true, organisation_id: orgId },
+        { unit_name: 'Boxes', unit_code: 'Box', is_active: true, organisation_id: orgId },
+        { unit_name: 'Packets', unit_code: 'Pkt', is_active: true, organisation_id: orgId },
+        { unit_name: 'Rolls', unit_code: 'Roll', is_active: true, organisation_id: orgId },
+        { unit_name: 'Square Feet', unit_code: 'Sqft', is_active: true, organisation_id: orgId },
+        { unit_name: 'Cubic Meters', unit_code: 'Cum', is_active: true, organisation_id: orgId },
       ];
-      const { error } = await supabase.from('item_units').upsert(standardUnits, { onConflict: 'unit_code' });
+      const { error } = await supabase.from('item_units').upsert(standardUnits, { onConflict: 'unit_code,organisation_id' });
       if (error) throw error;
     },
     onSuccess: () => {

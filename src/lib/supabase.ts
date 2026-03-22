@@ -12,8 +12,17 @@ export const supabase = createClient(
   supabaseAnonKey || 'placeholder-key'
 );
 
+export type Profile = {
+  id: string;
+  organisation_id: string;
+  full_name: string;
+  role: string;
+  created_at: string;
+};
+
 export type Client = {
   id: string;
+  organisation_id: string;
   name: string;
   email: string;
   phone: string;
@@ -44,6 +53,7 @@ export type Client = {
 
 export type ProjectType = {
   id: string;
+  organisation_id: string;
   name: string;
   is_active: boolean;
   created_at: string;
@@ -53,6 +63,7 @@ export type ProjectStatus = 'Draft' | 'Active' | 'Execution Completed' | 'Financ
 
 export type Project = {
   id: string;
+  organisation_id: string;
   client_id: string;
   name: string;
   status: ProjectStatus;
@@ -67,6 +78,7 @@ export type Project = {
 
 export type Communication = {
   id: string;
+  organisation_id: string;
   client_id: string;
   project_id?: string;
   type: 'email' | 'call' | 'meeting' | 'note';
@@ -77,6 +89,7 @@ export type Communication = {
 
 export type ClientCall = {
   id: string;
+  organisation_id: string;
   client_id: string;
   call_date: string;
   call_category: string;
@@ -92,6 +105,7 @@ export type ClientCall = {
 
 export type SiteVisit = {
   id: string;
+  organisation_id: string;
   project_id?: string;
   client_id?: string;
   visit_date: string;
@@ -117,6 +131,7 @@ export type SiteVisit = {
 
 export type Quotation = {
   id: string;
+  organisation_id: string;
   client_id: string;
   quotation_no: string;
   date: string;
@@ -127,6 +142,7 @@ export type Quotation = {
 
 export type PurchaseOrder = {
   id: string;
+  organisation_id: string;
   client_id: string;
   po_no: string;
   date: string;
@@ -137,6 +153,7 @@ export type PurchaseOrder = {
 
 export type DeliveryChallan = {
   id: string;
+  organisation_id: string;
   client_id: string;
   challan_no: string;
   date: string;
@@ -146,6 +163,7 @@ export type DeliveryChallan = {
 
 export type Meeting = {
   id: string;
+  organisation_id: string;
   client_id: string;
   title: string;
   date: string;
@@ -157,6 +175,7 @@ export type Meeting = {
 
 export type DiscountPriceList = {
   id: string;
+  organisation_id: string;
   name: string;
   discount_percent: number;
   type: 'standard' | 'premium' | 'bulk' | 'special';
@@ -165,6 +184,7 @@ export type DiscountPriceList = {
 
 export type Material = {
   id: string;
+  organisation_id: string;
   name: string; // item_name
   display_name?: string;
   item_code?: string;
@@ -193,6 +213,7 @@ export type Material = {
 
 export type Service = {
   id: string;
+  organisation_id: string;
   service_code?: string;
   service_name: string;
   description?: string;
@@ -208,6 +229,7 @@ export type Service = {
 
 export type ItemCategory = {
   id: string;
+  organisation_id: string;
   category_name: string;
   description?: string;
   is_active: boolean;
@@ -216,6 +238,7 @@ export type ItemCategory = {
 
 export type ItemUnit = {
   id: string;
+  organisation_id: string;
   unit_name: string;
   unit_code: string;
   description?: string;
@@ -244,6 +267,7 @@ export type Organisation = {
 
 export type CompanyVariant = {
   id: string;
+  organisation_id: string;
   company_id?: string;
   variant_name: string;
   description?: string;
@@ -254,6 +278,7 @@ export type CompanyVariant = {
 
 export type ItemVariantPricing = {
   id: string;
+  organisation_id: string;
   item_id: string;
   company_variant_id: string;
   make?: string;
@@ -267,6 +292,7 @@ export type ItemVariantPricing = {
 
 export type Warehouse = {
   id: string;
+  organisation_id: string;
   warehouse_code?: string;
   warehouse_name: string;
   location?: string;
@@ -278,6 +304,7 @@ export type Warehouse = {
 
 export type ItemStock = {
   id: string;
+  organisation_id: string;
   item_id: string;
   company_variant_id?: string;
   warehouse_id?: string;

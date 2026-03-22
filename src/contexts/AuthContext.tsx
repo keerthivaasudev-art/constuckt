@@ -1,21 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase, Profile } from '@/lib/supabase';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
-interface User {
-  email: string;
-  name: string;
-  companyDetails?: {
-    name: string;
-    address: string;
-    phone: string;
-    gstin?: string;
-  };
+interface User extends SupabaseUser {
+  profile?: Profile;
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, name: string) => void;
+  loading: boolean;
   logout: () => void;
-  updateCompanyDetails: (details: User['companyDetails']) => void;
   isAuthenticated: boolean;
 }
 
@@ -23,39 +17,64 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('constructflow_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-      setIsAuthenticated(true);
-    }
+    // Check active sessions and sets the user
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        await fetchProfile(session.user);
+      } else {
+        setLoading(false);
+      }
+    };
+
+    getSession();
+
+    // Listen for changes on auth state
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session) {
+        await fetchProfile(session.user);
+      } else {
+        setUser(null);
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = (email: string, name: string) => {
-    const newUser = { email, name };
-    setUser(newUser);
-    setIsAuthenticated(true);
-    localStorage.setItem('constructflow_user', JSON.stringify(newUser));
-  };
+  const fetchProfile = async (supabaseUser: SupabaseUser) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', supabaseUser.id)
+        .single();
 
-  const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    localStorage.removeItem('constructflow_user');
-  };
-
-  const updateCompanyDetails = (details: User['companyDetails']) => {
-    if (user) {
-      const updatedUser = { ...user, companyDetails: details };
-      setUser(updatedUser);
-      localStorage.setItem('constructflow_user', JSON.stringify(updatedUser));
+      if (error) {
+        console.error('Error fetching profile:', error);
+        setUser(supabaseUser as User);
+      } else {
+        setUser({ ...supabaseUser, profile } as User);
+      }
+    } catch (error) {
+      console.error('Profile fetch failed:', error);
+      setUser(supabaseUser as User);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateCompanyDetails, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, logout, loading, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

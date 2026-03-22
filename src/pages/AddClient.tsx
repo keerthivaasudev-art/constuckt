@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { ArrowLeft } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const INDIAN_STATES = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
@@ -22,12 +23,15 @@ const INDIAN_STATES = [
 export function AddClient() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const orgId = user?.profile?.organisation_id;
 
   const addClientMutation = useMutation({
     mutationFn: async (newClient: Omit<Client, 'id' | 'created_at'>) => {
+      if (!orgId) throw new Error("Organisation ID missing");
       const { data, error } = await supabase
         .from('clients')
-        .insert([newClient])
+        .insert([{ ...newClient, organisation_id: orgId }])
         .select();
       
       if (error) throw error;
@@ -38,7 +42,7 @@ export function AddClient() {
       toast.success('Client added successfully');
       navigate('/clients');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(`Error adding client: ${error.message}`);
     },
   });
@@ -50,192 +54,81 @@ export function AddClient() {
       name: formData.get('name') as string,
       email: formData.get('email') as string,
       phone: formData.get('phone') as string,
-      address: `${formData.get('address_line_1')}, ${formData.get('city')}, ${formData.get('state')}`,
-      gstin: formData.get('gstin') as string,
-      category: formData.get('category') as string,
-      vendor_no: formData.get('vendor_no') as string,
-      address_line_1: formData.get('address_line_1') as string,
-      address_line_2: formData.get('address_line_2') as string,
-      city: formData.get('city') as string,
-      state: formData.get('state') as string,
-      pincode: formData.get('pincode') as string,
-      contact_person_1_name: formData.get('contact_person_1_name') as string,
-      contact_person_1_designation: formData.get('contact_person_1_designation') as string,
-      contact_person_1_phone: formData.get('contact_person_1_phone') as string,
-      contact_person_1_email: formData.get('contact_person_1_email') as string,
-      contact_person_2_name: formData.get('contact_person_2_name') as string,
-      contact_person_2_designation: formData.get('contact_person_2_designation') as string,
-      contact_person_2_phone: formData.get('contact_person_2_phone') as string,
-      contact_person_2_email: formData.get('contact_person_2_email') as string,
-      contact_person_3_name: formData.get('contact_person_3_name') as string,
-      contact_person_3_designation: formData.get('contact_person_3_designation') as string,
-      contact_person_3_phone: formData.get('contact_person_3_phone') as string,
-      contact_person_3_email: formData.get('contact_person_3_email') as string,
+      address: formData.get('address') as string,
+      gstin: formData.get('gstin') as string || undefined,
+      category: formData.get('category') as string || 'Standard',
+      status: 'Active',
+      organisation_id: orgId as string,
     });
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate('/clients')}>
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-5 h-5" />
         </Button>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Add New Client</h1>
-          <p className="text-slate-500">Enter the details for the new client.</p>
-        </div>
+        <h1 className="text-2xl font-bold text-slate-900">Add New Client</h1>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <form onSubmit={handleAddClient} className="p-6 space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <form onSubmit={handleAddClient} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="p-6 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Client Name *</Label>
-              <Input id="name" name="name" placeholder="Client Name" required />
+              <Label htmlFor="name">Client / Company Name *</Label>
+              <Input id="name" name="name" placeholder="e.g. Acme Corporation" required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Company Email *</Label>
-              <Input id="email" name="email" type="email" placeholder="company@example.com" required />
+              <Label htmlFor="email">Email Address</Label>
+              <Input id="email" name="email" type="email" placeholder="e.g. contact@acme.com" required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Company Phone *</Label>
-              <Input id="phone" name="phone" placeholder="Phone Number" required />
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input id="phone" name="phone" placeholder="e.g. +91 98765 43210" required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="gstin">GSTIN (Optional)</Label>
+              <Input id="gstin" name="gstin" placeholder="e.g. 22AAAAA0000A1Z5" />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">Address Details</h3>
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="address">Full Address</Label>
+                <Input id="address" name="address" placeholder="e.g. 123 Business Park, Sector 62" required />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Select name="category" defaultValue="Active">
+              <Label htmlFor="category">Client Category</Label>
+              <Select name="category" defaultValue="Standard">
                 <SelectTrigger>
-                  <SelectValue placeholder="Select Category" />
+                  <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Inactive">Inactive</SelectItem>
-                  <SelectItem value="Lead">Lead</SelectItem>
+                  <SelectItem value="Standard">Standard</SelectItem>
+                  <SelectItem value="Premium">Premium</SelectItem>
+                  <SelectItem value="Government">Government</SelectItem>
+                  <SelectItem value="Contractor">Contractor</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
+        </div>
 
-          <div className="space-y-6 border rounded-lg p-6 bg-slate-50/50">
-            <h3 className="text-lg font-semibold text-slate-900">Contact Persons</h3>
-            
-            {/* Contact Person 1 */}
-            <div className="space-y-2">
-              <Label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Contact Person 1</Label>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="space-y-1">
-                  <Input id="contact_person_1_name" name="contact_person_1_name" placeholder="Name" />
-                </div>
-                <div className="space-y-1">
-                  <Input id="contact_person_1_designation" name="contact_person_1_designation" placeholder="e.g. Manager" />
-                </div>
-                <div className="space-y-1">
-                  <Input id="contact_person_1_phone" name="contact_person_1_phone" placeholder="Phone" />
-                </div>
-                <div className="space-y-1">
-                  <Input id="contact_person_1_email" name="contact_person_1_email" type="email" placeholder="email@example.com" />
-                </div>
-              </div>
-            </div>
-
-            {/* Contact Person 2 */}
-            <div className="space-y-2">
-              <Label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Contact Person 2</Label>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="space-y-1">
-                  <Input id="contact_person_2_name" name="contact_person_2_name" placeholder="Contact Person 2" />
-                </div>
-                <div className="space-y-1">
-                  <Input id="contact_person_2_designation" name="contact_person_2_designation" placeholder="Designation" />
-                </div>
-                <div className="space-y-1">
-                  <Input id="contact_person_2_phone" name="contact_person_2_phone" placeholder="Phone" />
-                </div>
-                <div className="space-y-1">
-                  <Input id="contact_person_2_email" name="contact_person_2_email" type="email" placeholder="Email" />
-                </div>
-              </div>
-            </div>
-
-            {/* Contact Person 3 */}
-            <div className="space-y-2">
-              <Label className="text-xs text-slate-500 uppercase tracking-wider font-bold">Contact Person 3</Label>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="space-y-1">
-                  <Input id="contact_person_3_name" name="contact_person_3_name" placeholder="Contact Person 3" />
-                </div>
-                <div className="space-y-1">
-                  <Input id="contact_person_3_designation" name="contact_person_3_designation" placeholder="Designation" />
-                </div>
-                <div className="space-y-1">
-                  <Input id="contact_person_3_phone" name="contact_person_3_phone" placeholder="Phone" />
-                </div>
-                <div className="space-y-1">
-                  <Input id="contact_person_3_email" name="contact_person_3_email" type="email" placeholder="Email" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="gstin">GST IN</Label>
-              <Input id="gstin" name="gstin" placeholder="15 characters (e.g., 27AABCU9603R1ZM)" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="vendor_no">Vendor No</Label>
-              <Input id="vendor_no" name="vendor_no" placeholder="Vendor No" />
-            </div>
-          </div>
-
-          <div className="space-y-4 border rounded-lg p-6 bg-emerald-50/20 border-emerald-100">
-            <h3 className="text-lg font-semibold text-emerald-900">Billing Address</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="address_line_1">Address Line 1</Label>
-                <Input id="address_line_1" name="address_line_1" placeholder="Address Line 1" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address_line_2">Address Line 2</Label>
-                <Input id="address_line_2" name="address_line_2" placeholder="Address Line 2" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="state">State</Label>
-                <Select name="state">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select State" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {INDIAN_STATES.map(state => (
-                      <SelectItem key={state} value={state}>{state}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
-                <Input id="city" name="city" placeholder="City" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="pincode">Pincode</Label>
-                <Input id="pincode" name="pincode" placeholder="Pincode" />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-4 pt-4">
-            <Button type="button" variant="outline" onClick={() => navigate('/clients')}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={addClientMutation.isPending}>
-              {addClientMutation.isPending ? 'Adding...' : 'Add Client'}
-            </Button>
-          </div>
-        </form>
-      </div>
+        <div className="p-6 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
+          <Button variant="outline" type="button" onClick={() => navigate('/clients')}>
+            Cancel
+          </Button>
+          <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={addClientMutation.isPending}>
+            {addClientMutation.isPending ? 'Adding...' : 'Add Client'}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 }

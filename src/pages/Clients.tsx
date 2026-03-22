@@ -7,20 +7,25 @@ import { Plus, Search, Edit2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function Clients() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const orgId = user?.profile?.organisation_id;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data: clients, isLoading } = useQuery({
-    queryKey: ['clients'],
+    queryKey: ['clients', orgId],
+    enabled: !!orgId,
     staleTime: 1000 * 60 * 5, // 5 minutes
     queryFn: async () => {
       const { data, error } = await supabase
         .from('clients')
         .select('*')
+        .eq('organisation_id', orgId)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -29,8 +34,8 @@ export function Clients() {
   });
 
   const { data: counts } = useQuery({
-    queryKey: ['client-counts', selectedClientId],
-    enabled: !!selectedClientId,
+    queryKey: ['client-counts', selectedClientId, orgId],
+    enabled: !!selectedClientId && !!orgId,
     staleTime: 1000 * 60 * 2, // 2 minutes
     queryFn: async () => {
       const [
@@ -41,12 +46,12 @@ export function Clients() {
         { count: dcCount },
         { count: mCount }
       ] = await Promise.all([
-        supabase.from('quotations').select('*', { count: 'exact', head: true }).eq('client_id', selectedClientId),
-        supabase.from('purchase_orders').select('*', { count: 'exact', head: true }).eq('client_id', selectedClientId),
-        supabase.from('projects').select('*', { count: 'exact', head: true }).eq('client_id', selectedClientId),
-        supabase.from('site_visits').select('*', { count: 'exact', head: true }).eq('project_id', selectedClientId),
-        supabase.from('delivery_challans').select('*', { count: 'exact', head: true }).eq('client_id', selectedClientId),
-        supabase.from('meetings').select('*', { count: 'exact', head: true }).eq('client_id', selectedClientId),
+        supabase.from('quotations').select('*', { count: 'exact', head: true }).eq('client_id', selectedClientId).eq('organisation_id', orgId),
+        supabase.from('purchase_orders').select('*', { count: 'exact', head: true }).eq('client_id', selectedClientId).eq('organisation_id', orgId),
+        supabase.from('projects').select('*', { count: 'exact', head: true }).eq('client_id', selectedClientId).eq('organisation_id', orgId),
+        supabase.from('site_visits').select('*', { count: 'exact', head: true }).eq('project_id', selectedClientId).eq('organisation_id', orgId),
+        supabase.from('delivery_challans').select('*', { count: 'exact', head: true }).eq('client_id', selectedClientId).eq('organisation_id', orgId),
+        supabase.from('meetings').select('*', { count: 'exact', head: true }).eq('client_id', selectedClientId).eq('organisation_id', orgId),
       ]);
 
       return {
@@ -101,26 +106,35 @@ export function Clients() {
             />
           </div>
         </div>
-
+        
         <div className="flex-1 overflow-y-auto">
           {isLoading ? (
-            <div className="p-4 text-center text-slate-500">Loading...</div>
-          ) : filteredClients?.length === 0 ? (
+            <div className="p-4 text-center text-slate-500">Loading clients...</div>
+          ) : filteredClients.length === 0 ? (
             <div className="p-4 text-center text-slate-500">No clients found</div>
           ) : (
             <div className="divide-y divide-slate-100">
-              {filteredClients?.map((client) => (
+              {filteredClients.map((client) => (
                 <button
                   key={client.id}
                   onClick={() => setSelectedClientId(client.id)}
                   className={cn(
-                    "w-full text-left p-4 transition-colors hover:bg-slate-50",
-                    selectedClientId === client.id && "bg-blue-50 border-l-4 border-blue-600"
+                    "w-full p-4 text-left transition-colors hover:bg-slate-50",
+                    selectedClientId === client.id && "bg-blue-50 border-r-2 border-blue-600"
                   )}
                 >
-                  <div className="font-semibold text-slate-900 truncate">{client.name}</div>
-                  <div className="text-xs text-slate-500 mt-1">
-                    {client.id.slice(0, 8).toUpperCase()} | {client.vendor_no || '-'}
+                  <p className="font-semibold text-slate-900 truncate">{client.name}</p>
+                  <p className="text-xs text-slate-500 mt-1 truncate">{client.city || 'No city'}, {client.state || 'No state'}</p>
+                  <div className="flex gap-2 mt-2">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
+                      {client.category || 'Standard'}
+                    </span>
+                    <span className={cn(
+                      "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium",
+                      client.status === 'Active' ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"
+                    )}>
+                      {client.status || 'Lead'}
+                    </span>
                   </div>
                 </button>
               ))}
@@ -129,66 +143,105 @@ export function Clients() {
         </div>
       </div>
 
-      {/* Right Detail View */}
-      <div className="flex-1 flex flex-col overflow-hidden bg-white">
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-y-auto bg-white">
         {selectedClient ? (
-          <>
-            <div className="p-6 border-bottom border-slate-200 flex items-center justify-between">
-              <h1 className="text-2xl font-bold text-slate-900">{selectedClient.name}</h1>
+          <div className="p-8">
+            <div className="flex justify-between items-start mb-8 pb-8 border-b border-slate-100">
+              <div>
+                <h1 className="text-3xl font-bold text-slate-900 mb-2">{selectedClient.name}</h1>
+                <div className="flex items-center gap-4 text-sm text-slate-500">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    {selectedClient.status || 'Lead'}
+                  </span>
+                  <span>|</span>
+                  <span>GSTIN: {selectedClient.gstin || 'Not provided'}</span>
+                </div>
+              </div>
               <Button 
                 variant="outline" 
                 size="sm" 
                 className="gap-2"
                 onClick={() => navigate(`/clients/edit/${selectedClient.id}`)}
               >
-                <Edit2 className="w-4 h-4" /> Edit
+                <Edit2 className="w-4 h-4" /> Edit Profile
               </Button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6">
-              <Tabs defaultValue="overview" className="space-y-6">
-                <TabsList className="bg-slate-100/50 p-1 h-auto flex-wrap justify-start gap-1 border-none">
-                  <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600 data-[state=active]:text-white px-4 py-2 rounded-md">Overview</TabsTrigger>
-                  <TabsTrigger value="ledger" className="px-4 py-2 rounded-md">Ledger Statement</TabsTrigger>
-                  <TabsTrigger value="transactions" className="px-4 py-2 rounded-md">Transactions</TabsTrigger>
-                  <TabsTrigger value="quotations" className="px-4 py-2 rounded-md">Quotations ({counts?.quotations || 0})</TabsTrigger>
-                  <TabsTrigger value="po" className="px-4 py-2 rounded-md">Client PO ({counts?.pos || 0})</TabsTrigger>
-                  <TabsTrigger value="projects" className="px-4 py-2 rounded-md">Projects ({counts?.projects || 0})</TabsTrigger>
-                  <TabsTrigger value="site-visits" className="px-4 py-2 rounded-md">Site Visits ({counts?.siteVisits || 0})</TabsTrigger>
-                  <TabsTrigger value="challans" className="px-4 py-2 rounded-md">Delivery Challans ({counts?.challans || 0})</TabsTrigger>
-                  <TabsTrigger value="meetings" className="px-4 py-2 rounded-md">Meetings ({counts?.meetings || 0})</TabsTrigger>
-                </TabsList>
+            <Tabs defaultValue="overview" className="space-y-6">
+              <TabsList className="bg-slate-100/50 p-1">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="projects">Projects ({counts?.projects})</TabsTrigger>
+                <TabsTrigger value="quotations">Quotations ({counts?.quotations})</TabsTrigger>
+                <TabsTrigger value="pos">Purchase Orders ({counts?.pos})</TabsTrigger>
+                <TabsTrigger value="communication">Communication</TabsTrigger>
+              </TabsList>
 
-                <TabsContent value="overview" className="mt-0 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <InfoCard label="Client ID" value={selectedClient.id.slice(0, 8).toUpperCase()} />
-                    <InfoCard label="Contact" value={selectedClient.contact_person_1_name || '-'} />
-                    <InfoCard label="Email" value={selectedClient.contact_person_1_email || '-'} />
-                    <InfoCard label="GSTIN" value={selectedClient.gstin || '-'} />
-                    <InfoCard label="State" value={selectedClient.state || '-'} />
-                    <InfoCard label="City" value={selectedClient.city || '-'} />
-                    <InfoCard label="Category" value={selectedClient.category || 'Active'} />
-                    <InfoCard label="Address" value={selectedClient.pincode || '-'} />
+              <TabsContent value="overview" className="space-y-8 mt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">Contact Information</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-xs text-slate-500">Primary Email</p>
+                        <p className="text-sm font-medium text-slate-900">{selectedClient.email || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Phone Number</p>
+                        <p className="text-sm font-medium text-slate-900">{selectedClient.phone || 'N/A'}</p>
+                      </div>
+                    </div>
                   </div>
-                </TabsContent>
-              </Tabs>
-            </div>
-          </>
+
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">Office Address</h3>
+                    <div className="space-y-1">
+                      <p className="text-sm text-slate-900">{selectedClient.address_line_1 || selectedClient.address}</p>
+                      {selectedClient.address_line_2 && <p className="text-sm text-slate-900">{selectedClient.address_line_2}</p>}
+                      <p className="text-sm text-slate-900">
+                        {selectedClient.city && `${selectedClient.city}, `}
+                        {selectedClient.state} {selectedClient.pincode}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">Account Details</h3>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-xs text-slate-500">Vendor Code</p>
+                        <p className="text-sm font-medium text-slate-900">{selectedClient.vendor_no || 'None'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-500">Added On</p>
+                        <p className="text-sm font-medium text-slate-900">{new Date(selectedClient.created_at).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="projects">
+                <div className="bg-slate-50 rounded-xl p-8 border-2 border-dashed border-slate-200 text-center">
+                  <p className="text-slate-500 font-medium">Project history for this client will appear here.</p>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="quotations">
+                <div className="bg-slate-50 rounded-xl p-8 border-2 border-dashed border-slate-200 text-center">
+                  <p className="text-slate-500 font-medium">Quotations sent to this client will appear here.</p>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-slate-500">
-            Select a client to view details
+          <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-4">
+            <Search className="w-12 h-12 opacity-20" />
+            <p className="text-lg font-medium">Select a client to view details</p>
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-function InfoCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="p-4 border border-slate-200 rounded-lg bg-white space-y-1">
-      <div className="text-xs font-medium text-slate-500 uppercase tracking-wider">{label}</div>
-      <div className="text-sm font-semibold text-slate-900">{value}</div>
     </div>
   );
 }
