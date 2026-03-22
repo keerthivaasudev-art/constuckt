@@ -15,6 +15,9 @@ description: >
   stack pattern for all of them.
 ---
 
+## Error
+When a error is occured, update the skills that that error shouldnot be encountred again.
+
 # React + Vite + Supabase ERP Skill
 
 ## Stack

@@ -40,7 +40,6 @@ import { useMaterialsData } from '../hooks/useMaterials';
 export function ServiceList() {
   const { queries, mutations } = useMaterialsData();
   const { data: services, isLoading } = queries.services;
-  const { data: units } = queries.units;
 
   const [searchTerm, setSearchTerm] = useState('');
   const [hideInactive, setHideInactive] = useState(false);
@@ -58,9 +57,6 @@ export function ServiceList() {
       description: data.display_name,
       unit: data.unit,
       sale_price: parseFloat(data.sale_price as string) || 0,
-      purchase_price: parseFloat(data.purchase_price as string) || 0,
-      tax_rate: parseFloat(data.gst_rate as string) || 0,
-      hsn_code: data.hsn_code,
       is_active: true
     };
 
@@ -122,19 +118,15 @@ export function ServiceList() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Service Name *</Label>
-                  <Input id="name" name="name" defaultValue={editingService?.service_name || ''} placeholder="e.g. Installation" required className="h-11 md:h-9" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="display_name">Description</Label>
-                  <Input id="display_name" name="display_name" defaultValue={editingService?.description || ''} placeholder="Short description" className="h-11 md:h-9" />
+                  <Input id="name" name="name" defaultValue={editingService?.service_name || ''} required className="h-11 md:h-9" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="item_code">Service Code</Label>
-                  <Input id="item_code" name="item_code" defaultValue={editingService?.service_code || ''} placeholder="e.g. SRV-001" className="h-11 md:h-9" />
+                  <Input id="item_code" name="item_code" defaultValue={editingService?.service_code || ''} className="h-11 md:h-9" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="unit">Unit *</Label>
-                  <Input id="unit" name="unit" defaultValue={editingService?.unit || ''} placeholder="e.g. Lumpsum" required className="h-11 md:h-9" />
+                  <Input id="unit" name="unit" defaultValue={editingService?.unit || ''} required className="h-11 md:h-9" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="sale_price">Sale Price</Label>
