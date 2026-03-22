@@ -29,7 +29,8 @@ export function RegisterPage() {
         navigate('/login');
       }
     } catch (error: any) {
-      toast.error('An unexpected error occurred during registration.');
+      console.error('Registration error details:', error);
+      toast.error(error.message || 'An unexpected error occurred during registration.');
     } finally {
       setIsLoading(false);
     }
