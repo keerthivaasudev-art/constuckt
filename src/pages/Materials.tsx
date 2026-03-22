@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { MaterialList } from './components/MaterialList';
-import { ServiceList } from './components/ServiceList';
+import { MaterialList } from './Materials/components/MaterialList';
+import { ServiceList } from './Materials/components/ServiceList';
 
 type MaterialTab = 'items' | 'service' | 'category' | 'unit' | 'warehouses' | 'variants';
 
