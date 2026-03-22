@@ -59,6 +59,8 @@ export function Layout({ children }: LayoutProps) {
     navigate('/login');
   };
 
+  const displayName = user?.profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
+
   return (
     <div className="flex h-screen w-full bg-slate-50 overflow-hidden relative">
       {/* Desktop Sidebar — hidden on mobile */}
@@ -147,14 +149,12 @@ export function Layout({ children }: LayoutProps) {
 
             {/* User Profile Menu */}
             <DropdownMenu>
-              <DropdownMenuTrigger 
-                asChild
-              >
+              <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full hover:bg-slate-50 transition-colors group outline-none">
                   <div className="flex flex-col items-end hidden sm:flex">
-                    <span className="text-sm font-semibold text-slate-900 leading-none">{user?.name || 'Admin User'}</span>
+                    <span className="text-sm font-semibold text-slate-900 leading-none">{displayName}</span>
                     <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider mt-1">
-                      {user?.companyDetails?.name || 'Administrator'}
+                      {user?.profile?.role || 'Administrator'}
                     </span>
                   </div>
                   <div className="w-9 h-9 rounded-full bg-blue-100 border-2 border-white shadow-sm flex items-center justify-center text-blue-700 font-bold overflow-hidden">
