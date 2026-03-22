@@ -23,6 +23,7 @@ import {
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
+  DialogTrigger,
   DialogFooter
 } from '@/components/ui/dialog';
 import {
@@ -100,14 +101,12 @@ export function ServiceList() {
           </div>
         </div>
 
-        <Button 
-          className="bg-blue-600 hover:bg-blue-700 gap-2 h-11 md:h-9"
-          onClick={() => setIsDialogOpen(true)}
-        >
-          <Plus className="w-4 h-4" /> Add Service
-        </Button>
-
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-blue-600 hover:bg-blue-700 gap-2 h-11 md:h-9">
+              <Plus className="w-4 h-4" /> Add Service
+            </Button>
+          </DialogTrigger>
           <DialogContent className="w-full max-w-2xl">
             <DialogHeader>
               <DialogTitle>{editingService ? 'Edit' : 'Add New'} Service</DialogTitle>
@@ -147,7 +146,6 @@ export function ServiceList() {
             <TableRow className="bg-slate-50">
               <TableHead className="text-xs font-semibold uppercase font-sans">Name</TableHead>
               <TableHead className="text-xs font-semibold uppercase font-sans">Code</TableHead>
-              <TableHead className="text-xs font-semibold uppercase font-sans">Unit</TableHead>
               <TableHead className="text-xs font-semibold uppercase font-sans text-right">Price</TableHead>
               <TableHead className="text-xs font-semibold uppercase font-sans">Status</TableHead>
               <TableHead className="w-[50px]"></TableHead>
@@ -162,7 +160,6 @@ export function ServiceList() {
               <TableRow key={service.id} className="hover:bg-slate-50/50">
                 <TableCell className="text-xs font-sans font-medium">{service.service_name}</TableCell>
                 <TableCell className="text-xs font-sans text-slate-500">{service.service_code || '-'}</TableCell>
-                <TableCell className="text-xs font-sans">{service.unit}</TableCell>
                 <TableCell className="text-xs font-sans text-right">₹{service.sale_price?.toLocaleString()}</TableCell>
                 <TableCell>
                   <Badge variant={service.is_active ? "success" : "secondary"} className="text-[10px] uppercase">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Material, 
 } from '@/lib/supabase';
@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Plus, 
   Search, 
+  Columns, 
   MoreHorizontal,
   Edit2,
   Trash2
@@ -22,13 +23,17 @@ import {
 } from '@/components/ui/table';
 import { 
   Select, 
+  SelectContent, 
   SelectItem, 
+  SelectTrigger, 
+  SelectValue 
 } from '@/components/ui/select';
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
   DialogTitle, 
+  DialogTrigger,
   DialogFooter
 } from '@/components/ui/dialog';
 import {
@@ -53,6 +58,9 @@ export function MaterialList() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(['Name', 'Code', 'Category', 'Unit', 'Price', 'Status']);
+  
+  const itemColumns = ['Name', 'Item Code', 'Category', 'Unit', 'Price', 'Status'];
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -112,14 +120,12 @@ export function MaterialList() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button 
-            className="bg-blue-600 hover:bg-blue-700 gap-2 h-11 md:h-9 flex-1 md:flex-none"
-            onClick={() => setIsDialogOpen(true)}
-          >
-            <Plus className="w-4 h-4" /> Add Item
-          </Button>
-
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-blue-600 hover:bg-blue-700 gap-2 h-11 md:h-9 flex-1 md:flex-none">
+                <Plus className="w-4 h-4" /> Add Item
+              </Button>
+            </DialogTrigger>
             <DialogContent className="w-full max-w-2xl">
               <DialogHeader>
                 <DialogTitle>{editingMaterial ? 'Edit' : 'Add New'} Item</DialogTitle>
@@ -137,19 +143,27 @@ export function MaterialList() {
                   <div className="space-y-2">
                     <Label htmlFor="category">Category *</Label>
                     <Select name="category" defaultValue={editingMaterial?.category}>
-                      <option value="">Select Category</option>
-                      {categories?.map(cat => (
-                        <SelectItem key={cat.id} value={cat.category_name}>{cat.category_name}</SelectItem>
-                      ))}
+                      <SelectTrigger className="h-11 md:h-9">
+                        <SelectValue placeholder="Select Category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories?.map(cat => (
+                          <SelectItem key={cat.id} value={cat.category_name}>{cat.category_name}</SelectItem>
+                        ))}
+                      </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="unit">Unit *</Label>
                     <Select name="unit" defaultValue={editingMaterial?.unit}>
-                      <option value="">Select Unit</option>
-                      {units?.map(u => (
-                        <SelectItem key={u.id} value={u.unit_code}>{u.unit_name}</SelectItem>
-                      ))}
+                      <SelectTrigger className="h-11 md:h-9">
+                        <SelectValue placeholder="Select Unit" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {units?.map(u => (
+                          <SelectItem key={u.id} value={u.unit_code}>{u.unit_name}</SelectItem>
+                        ))}
+                      </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
@@ -223,7 +237,7 @@ export function MaterialList() {
               <div className="flex justify-between items-start mb-2">
                 <div>
                   <h3 className="text-sm font-semibold text-slate-900">{item.name}</h3>
-                  <p className="text-xs text-slate-500">{item.item_code || 'No Code'}</p>
+                  <p className="text-xs text-slate-500">{item.item_code || 'No Code'} • {item.category}</p>
                 </div>
                 <Badge variant={item.is_active ? "success" : "secondary"} className="text-[10px]">
                   {item.is_active ? 'Active' : 'Inactive'}
