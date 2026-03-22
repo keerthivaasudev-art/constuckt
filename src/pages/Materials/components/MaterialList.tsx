@@ -217,227 +217,234 @@ export function MaterialList() {
           </Button>
 
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogContent className="w-screen h-screen max-w-none sm:max-w-4xl sm:h-auto overflow-y-auto">
-              <DialogHeader>
+            <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+              <DialogHeader className="p-6 pb-2">
                 <DialogTitle className="text-2xl font-bold">{editingMaterial ? 'Edit' : 'Add New'} Inventory Item</DialogTitle>
               </DialogHeader>
               
-              <form onSubmit={handleSubmit} className="py-4">
-                <div className="space-y-10">
-                  {/* General Info Section */}
-                  <section className="space-y-4">
-                    <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                      <div className="p-2 bg-blue-50 rounded-lg">
-                        <FileText className="w-5 h-5 text-blue-600" />
+              <div className="flex-1 overflow-y-auto p-6 pt-0 custom-scrollbar">
+                <form id="material-form" onSubmit={handleSubmit} className="py-4">
+                  <div className="space-y-10">
+                    {/* General Info Section */}
+                    <section className="space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                        <div className="p-2 bg-blue-50 rounded-lg">
+                          <FileText className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-900">General Information</h3>
                       </div>
-                      <h3 className="text-lg font-bold text-slate-900">General Information</h3>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50/50 p-6 rounded-xl border border-slate-100">
-                      <div className="space-y-2">
-                        <Label htmlFor="name">Item Name *</Label>
-                        <Input id="name" name="name" defaultValue={editingMaterial?.name || ''} placeholder="e.g. Gate Valve" required />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50/50 p-6 rounded-xl border border-slate-100">
+                        <div className="space-y-2">
+                          <Label htmlFor="name">Item Name *</Label>
+                          <Input id="name" name="name" defaultValue={editingMaterial?.name || ''} placeholder="e.g. Gate Valve" required />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="display_name">Display Name (Internal)</Label>
+                          <Input id="display_name" name="display_name" defaultValue={editingMaterial?.display_name || ''} placeholder="e.g. GV-2024-Red" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="item_code">Part Number / Code</Label>
+                          <Input id="item_code" name="item_code" defaultValue={editingMaterial?.item_code || ''} placeholder="e.g. ITEM-001" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="category">Primary Category *</Label>
+                          <Select name="category" defaultValue={editingMaterial?.category}>
+                            <SelectTrigger><SelectValue placeholder="Select Category" /></SelectTrigger>
+                            <SelectContent>
+                              {categories?.map(cat => (
+                                <SelectItem key={cat.id} value={cat.category_name}>{cat.category_name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="sub_category">Sub-Category</Label>
+                          <Input id="sub_category" name="sub_category" defaultValue={editingMaterial?.sub_category || ''} placeholder="e.g. Industrial Valves" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="unit">Base Unit of Measure *</Label>
+                          <Select name="unit" defaultValue={editingMaterial?.unit}>
+                            <SelectTrigger><SelectValue placeholder="Select Unit" /></SelectTrigger>
+                            <SelectContent>
+                              {units?.map(u => (
+                                <SelectItem key={u.id} value={u.unit_code}>{u.unit_name} ({u.unit_code})</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="display_name">Display Name (Internal)</Label>
-                        <Input id="display_name" name="display_name" defaultValue={editingMaterial?.display_name || ''} placeholder="e.g. GV-2024-Red" />
+                    </section>
+
+                    {/* Pricing Section */}
+                    <section className="space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                        <div className="p-2 bg-emerald-50 rounded-lg">
+                          <IndianRupee className="w-5 h-5 text-emerald-600" />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-900">Pricing & Tax Details</h3>
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="item_code">Part Number / Code</Label>
-                        <Input id="item_code" name="item_code" defaultValue={editingMaterial?.item_code || ''} placeholder="e.g. ITEM-001" />
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-emerald-50/20 p-6 rounded-xl border border-emerald-100/50">
+                        <div className="space-y-2">
+                          <Label htmlFor="sale_price">Standard Sale Price (₹)</Label>
+                          <div className="relative">
+                            <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <Input id="sale_price" name="sale_price" type="number" step="0.01" defaultValue={editingMaterial?.sale_price || 0} className="pl-9" />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="purchase_price">Standard Purchase Price (₹)</Label>
+                          <div className="relative">
+                            <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <Input id="purchase_price" name="purchase_price" type="number" step="0.01" defaultValue={editingMaterial?.purchase_price || 0} className="pl-9" />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="gst_rate">GST Rate (%)</Label>
+                          <Select name="gst_rate" defaultValue={editingMaterial?.gst_rate?.toString() || "18"}>
+                            <SelectTrigger><SelectValue placeholder="Tax %" /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="0">0% (Exempt)</SelectItem>
+                              <SelectItem value="5">5%</SelectItem>
+                              <SelectItem value="12">12%</SelectItem>
+                              <SelectItem value="18">18%</SelectItem>
+                              <SelectItem value="28">28%</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="hsn_code">HSN / SAC Code</Label>
+                          <Input id="hsn_code" name="hsn_code" defaultValue={editingMaterial?.hsn_code || ''} placeholder="e.g. 8481" />
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="category">Primary Category *</Label>
-                        <Select name="category" defaultValue={editingMaterial?.category}>
-                          <SelectTrigger><SelectValue placeholder="Select Category" /></SelectTrigger>
-                          <SelectContent>
-                            {categories?.map(cat => (
-                              <SelectItem key={cat.id} value={cat.category_name}>{cat.category_name}</SelectItem>
+                    </section>
+
+                    {/* Specs Section */}
+                    <section className="space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                        <div className="p-2 bg-amber-50 rounded-lg">
+                          <Settings className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-900">Technical Specifications</h3>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-slate-50/50 p-6 rounded-xl border border-slate-100">
+                        <div className="space-y-2">
+                          <Label htmlFor="size">Size / Dimensions</Label>
+                          <Input id="size" name="size" defaultValue={editingMaterial?.size || ''} placeholder="e.g. 2 inch" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="pressure_class">Pressure Class</Label>
+                          <Input id="pressure_class" name="pressure_class" defaultValue={editingMaterial?.pressure_class || ''} placeholder="e.g. Class 150" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="schedule_type">Schedule Type</Label>
+                          <Input id="schedule_type" name="schedule_type" defaultValue={editingMaterial?.schedule_type || ''} placeholder="e.g. SCH 40" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="material">Body Material</Label>
+                          <Input id="material" name="material" defaultValue={editingMaterial?.material || ''} placeholder="e.g. Stainless Steel" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="end_connection">End Connection</Label>
+                          <Input id="end_connection" name="end_connection" defaultValue={editingMaterial?.end_connection || ''} placeholder="e.g. Flanged" />
+                        </div>
+                      </div>
+                    </section>
+
+                    {/* Variants Section */}
+                    <section className="space-y-4">
+                      <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                        <div className="p-2 bg-purple-50 rounded-lg">
+                          <Layers className="w-5 h-5 text-purple-600" />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-900">Inventory Variants</h3>
+                      </div>
+                      <div className="bg-white border rounded-xl p-6 space-y-4 shadow-sm border-slate-200">
+                        <div className="flex items-center justify-between">
+                          <div className="space-y-0.5">
+                            <Label className="text-base font-bold">Enable Variants</Label>
+                            <p className="text-sm text-slate-500">Allow multiple makes (e.g. Jindal, Tata) for this item with custom pricing.</p>
+                          </div>
+                          <Checkbox 
+                            checked={usesVariant} 
+                            onCheckedChange={(checked) => {
+                              setUsesVariant(!!checked);
+                              if (checked && variantPricingRows.length === 0) {
+                                setVariantPricingRows(companyVariants?.map(v => ({
+                                  company_variant_id: v.id,
+                                  variant_name: v.variant_name,
+                                  make: '',
+                                  sale_price: editingMaterial?.sale_price || 0,
+                                  purchase_price: editingMaterial?.purchase_price || 0
+                                })) || []);
+                              }
+                            }} 
+                          />
+                        </div>
+
+                        {usesVariant && (
+                          <div className="space-y-4 pt-4 border-t border-slate-100">
+                            {variantPricingRows.map((row, idx) => (
+                              <div key={row.company_variant_id} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-lg items-end border border-slate-100">
+                                <div className="space-y-1">
+                                  <Label className="text-[10px] uppercase text-slate-500 font-bold">Make / Brand</Label>
+                                  <Input 
+                                    placeholder="e.g. Jindal"
+                                    value={row.make || ''}
+                                    onChange={(e) => {
+                                      const newRows = [...variantPricingRows];
+                                      newRows[idx].make = e.target.value;
+                                      setVariantPricingRows(newRows);
+                                    }}
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <Label className="text-[10px] uppercase text-slate-500 font-bold">Sale Price (₹)</Label>
+                                  <Input 
+                                    type="number"
+                                    value={row.sale_price || 0}
+                                    onChange={(e) => {
+                                      const newRows = [...variantPricingRows];
+                                      newRows[idx].sale_price = parseFloat(e.target.value);
+                                      setVariantPricingRows(newRows);
+                                    }}
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <Label className="text-[10px] uppercase text-slate-500 font-bold">Purchase Price (₹)</Label>
+                                  <Input 
+                                    type="number"
+                                    value={row.purchase_price || 0}
+                                    onChange={(e) => {
+                                      const newRows = [...variantPricingRows];
+                                      newRows[idx].purchase_price = parseFloat(e.target.value);
+                                      setVariantPricingRows(newRows);
+                                    }}
+                                  />
+                                </div>
+                                <div className="flex items-center h-10 px-2 text-xs font-bold text-blue-600 bg-blue-50 rounded border border-blue-100">
+                                  {row.variant_name}
+                                </div>
+                              </div>
                             ))}
-                          </SelectContent>
-                        </Select>
+                          </div>
+                        )}
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="sub_category">Sub-Category</Label>
-                        <Input id="sub_category" name="sub_category" defaultValue={editingMaterial?.sub_category || ''} placeholder="e.g. Industrial Valves" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="unit">Base Unit of Measure *</Label>
-                        <Select name="unit" defaultValue={editingMaterial?.unit}>
-                          <SelectTrigger><SelectValue placeholder="Select Unit" /></SelectTrigger>
-                          <SelectContent>
-                            {units?.map(u => (
-                              <SelectItem key={u.id} value={u.unit_code}>{u.unit_name} ({u.unit_code})</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </section>
+                    </section>
+                  </div>
+                </form>
+              </div>
 
-                  {/* Pricing Section */}
-                  <section className="space-y-4">
-                    <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                      <div className="p-2 bg-emerald-50 rounded-lg">
-                        <IndianRupee className="w-5 h-5 text-emerald-600" />
-                      </div>
-                      <h3 className="text-lg font-bold text-slate-900">Pricing & Tax Details</h3>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-emerald-50/20 p-6 rounded-xl border border-emerald-100/50">
-                      <div className="space-y-2">
-                        <Label htmlFor="sale_price">Standard Sale Price (₹)</Label>
-                        <div className="relative">
-                          <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                          <Input id="sale_price" name="sale_price" type="number" step="0.01" defaultValue={editingMaterial?.sale_price || 0} className="pl-9" />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="purchase_price">Standard Purchase Price (₹)</Label>
-                        <div className="relative">
-                          <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                          <Input id="purchase_price" name="purchase_price" type="number" step="0.01" defaultValue={editingMaterial?.purchase_price || 0} className="pl-9" />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="gst_rate">GST Rate (%)</Label>
-                        <Select name="gst_rate" defaultValue={editingMaterial?.gst_rate?.toString() || "18"}>
-                          <SelectTrigger><SelectValue placeholder="Tax %" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="0">0% (Exempt)</SelectItem>
-                            <SelectItem value="5">5%</SelectItem>
-                            <SelectItem value="12">12%</SelectItem>
-                            <SelectItem value="18">18%</SelectItem>
-                            <SelectItem value="28">28%</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="hsn_code">HSN / SAC Code</Label>
-                        <Input id="hsn_code" name="hsn_code" defaultValue={editingMaterial?.hsn_code || ''} placeholder="e.g. 8481" />
-                      </div>
-                    </div>
-                  </section>
-
-                  {/* Specs Section */}
-                  <section className="space-y-4">
-                    <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                      <div className="p-2 bg-amber-50 rounded-lg">
-                        <Settings className="w-5 h-5 text-amber-600" />
-                      </div>
-                      <h3 className="text-lg font-bold text-slate-900">Technical Specifications</h3>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-slate-50/50 p-6 rounded-xl border border-slate-100">
-                      <div className="space-y-2">
-                        <Label htmlFor="size">Size / Dimensions</Label>
-                        <Input id="size" name="size" defaultValue={editingMaterial?.size || ''} placeholder="e.g. 2 inch" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="pressure_class">Pressure Class</Label>
-                        <Input id="pressure_class" name="pressure_class" defaultValue={editingMaterial?.pressure_class || ''} placeholder="e.g. Class 150" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="schedule_type">Schedule Type</Label>
-                        <Input id="schedule_type" name="schedule_type" defaultValue={editingMaterial?.schedule_type || ''} placeholder="e.g. SCH 40" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="material">Body Material</Label>
-                        <Input id="material" name="material" defaultValue={editingMaterial?.material || ''} placeholder="e.g. Stainless Steel" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="end_connection">End Connection</Label>
-                        <Input id="end_connection" name="end_connection" defaultValue={editingMaterial?.end_connection || ''} placeholder="e.g. Flanged" />
-                      </div>
-                    </div>
-                  </section>
-
-                  {/* Variants Section */}
-                  <section className="space-y-4">
-                    <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
-                      <div className="p-2 bg-purple-50 rounded-lg">
-                        <Layers className="w-5 h-5 text-purple-600" />
-                      </div>
-                      <h3 className="text-lg font-bold text-slate-900">Inventory Variants</h3>
-                    </div>
-                    <div className="bg-white border rounded-xl p-6 space-y-4 shadow-sm border-slate-200">
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                          <Label className="text-base font-bold">Enable Variants</Label>
-                          <p className="text-sm text-slate-500">Allow multiple makes (e.g. Jindal, Tata) for this item with custom pricing.</p>
-                        </div>
-                        <Checkbox 
-                          checked={usesVariant} 
-                          onCheckedChange={(checked) => {
-                            setUsesVariant(!!checked);
-                            if (checked && variantPricingRows.length === 0) {
-                              setVariantPricingRows(companyVariants?.map(v => ({
-                                company_variant_id: v.id,
-                                variant_name: v.variant_name,
-                                make: '',
-                                sale_price: editingMaterial?.sale_price || 0,
-                                purchase_price: editingMaterial?.purchase_price || 0
-                              })) || []);
-                            }
-                          }} 
-                        />
-                      </div>
-
-                      {usesVariant && (
-                        <div className="space-y-4 pt-4 border-t border-slate-100">
-                          {variantPricingRows.map((row, idx) => (
-                            <div key={row.company_variant_id} className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-lg items-end border border-slate-100">
-                              <div className="space-y-1">
-                                <Label className="text-[10px] uppercase text-slate-500 font-bold">Make / Brand</Label>
-                                <Input 
-                                  placeholder="e.g. Jindal"
-                                  value={row.make || ''}
-                                  onChange={(e) => {
-                                    const newRows = [...variantPricingRows];
-                                    newRows[idx].make = e.target.value;
-                                    setVariantPricingRows(newRows);
-                                  }}
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <Label className="text-[10px] uppercase text-slate-500 font-bold">Sale Price (₹)</Label>
-                                <Input 
-                                  type="number"
-                                  value={row.sale_price || 0}
-                                  onChange={(e) => {
-                                    const newRows = [...variantPricingRows];
-                                    newRows[idx].sale_price = parseFloat(e.target.value);
-                                    setVariantPricingRows(newRows);
-                                  }}
-                                />
-                              </div>
-                              <div className="space-y-1">
-                                <Label className="text-[10px] uppercase text-slate-500 font-bold">Purchase Price (₹)</Label>
-                                <Input 
-                                  type="number"
-                                  value={row.purchase_price || 0}
-                                  onChange={(e) => {
-                                    const newRows = [...variantPricingRows];
-                                    newRows[idx].purchase_price = parseFloat(e.target.value);
-                                    setVariantPricingRows(newRows);
-                                  }}
-                                />
-                              </div>
-                              <div className="flex items-center h-10 px-2 text-xs font-bold text-blue-600 bg-blue-50 rounded border border-blue-100">
-                                {row.variant_name}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </section>
-                </div>
-
-                <DialogFooter className="mt-8 pt-6 border-t">
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Discard Changes</Button>
-                  <Button type="submit" className="bg-blue-600 hover:bg-blue-700 min-w-[140px] font-bold" disabled={mutations.addMaterial.isPending || mutations.updateMaterial.isPending}>
-                    {editingMaterial ? 'Update Inventory' : 'Add to Inventory'}
-                  </Button>
-                </DialogFooter>
-              </form>
+              <DialogFooter className="p-6 pt-4 border-t bg-slate-50/50 rounded-b-lg">
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Discard Changes</Button>
+                <Button 
+                  form="material-form"
+                  type="submit" 
+                  className="bg-blue-600 hover:bg-blue-700 min-w-[140px] font-bold" 
+                  disabled={mutations.addMaterial.isPending || mutations.updateMaterial.isPending}
+                >
+                  {editingMaterial ? 'Update Inventory' : 'Add to Inventory'}
+                </Button>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
